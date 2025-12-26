@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+layers/puppeteer/node_modules/
+
+# Build outputs
+.esbuild/
+.serverless/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
