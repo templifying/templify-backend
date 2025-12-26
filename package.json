@@ -1,0 +1,45 @@
+{
+  "name": "templify-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit",
+    "deploy:dev": "serverless deploy --stage dev --aws-profile rocketeast",
+    "deploy:prod": "serverless deploy --stage prod --aws-profile rocketeast",
+    "offline": "serverless offline --stage dev --aws-profile rocketeast",
+    "remove:dev": "serverless remove --stage dev --aws-profile rocketeast",
+    "remove:prod": "serverless remove --stage prod --aws-profile rocketeast",
+    "info:dev": "serverless info --stage dev --aws-profile rocketeast",
+    "info:prod": "serverless info --stage prod --aws-profile rocketeast",
+    "logs": "serverless logs -f $FUNCTION --stage dev --aws-profile rocketeast"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@serverless/typescript": "^4.15.1",
+    "@types/aws-lambda": "^8.10.150",
+    "@types/node": "^24.0.7",
+    "esbuild": "^0.25.5",
+    "serverless": "^4.17.1",
+    "serverless-esbuild": "^1.55.1",
+    "serverless-offline": "^14.4.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.839.0",
+    "@aws-sdk/client-s3": "^3.839.0",
+    "@aws-sdk/client-ses": "^3.839.0",
+    "@aws-sdk/lib-dynamodb": "^3.839.0",
+    "@aws-sdk/s3-request-presigner": "^3.839.0",
+    "@middy/core": "^6.3.2",
+    "@middy/http-error-handler": "^6.3.2",
+    "@middy/http-json-body-parser": "^6.3.2",
+    "@sparticuz/chromium-min": "^137.0.1",
+    "handlebars": "^4.7.8",
+    "puppeteer-core": "^24.11.1",
+    "uuid": "^11.1.0"
+  }
+}
