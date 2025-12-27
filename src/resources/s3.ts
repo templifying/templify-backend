@@ -22,17 +22,6 @@ export const s3Buckets = {
             Status: 'Enabled',
             Prefix: 'pdfs/',
             ExpirationInDays: 30
-          },
-          {
-            Id: 'TransitionOldPDFsToIA',
-            Status: 'Enabled',
-            Prefix: 'pdfs/',
-            Transitions: [
-              {
-                TransitionInDays: 7,
-                StorageClass: 'STANDARD_IA'
-              }
-            ]
           }
         ]
       },
