@@ -15,6 +15,6 @@ export { default as deleteTemplate } from './templates/deleteTemplate';
 export { default as generatePdf } from './pdf/generate';
 export { default as generatePdfAsync } from './pdf/generateAsync';
 
-// Note: Cognito trigger functions (preSignUp, postConfirmation) are defined
-// but not exported to Serverless to avoid CloudFormation circular dependencies.
-// Lambda triggers will be added manually via AWS CLI after deployment.
+// Cognito trigger functions (no HTTP events, triggered by Cognito)
+export { default as preSignUp } from './cognito/preSignUp';
+export { default as postConfirmation } from './cognito/postConfirmation';
