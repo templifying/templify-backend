@@ -28,7 +28,7 @@
     "@types/node": "^24.0.7",
     "esbuild": "^0.25.5",
     "puppeteer-core": "^24.11.1",
-    "serverless": "^4.17.1",
+    "serverless": "^3.40.0",
     "serverless-esbuild": "^1.55.1",
     "serverless-offline": "^14.4.0",
     "typescript": "^5.8.3"
