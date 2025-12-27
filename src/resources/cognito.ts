@@ -58,17 +58,21 @@ export const cognitoResources = {
       ],
       GenerateSecret: false,
       PreventUserExistenceErrors: 'ENABLED',
-      SupportedIdentityProviders: ['COGNITO', 'Google'],
+      SupportedIdentityProviders: ['COGNITO'],
       AllowedOAuthFlows: ['code'],
       AllowedOAuthScopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
       AllowedOAuthFlowsUserPoolClient: true,
       CallbackURLs: [
         'http://localhost:3000/callback',
-        'https://app.templify.com/callback'
+        'https://app.templifying.com/callback',
+        'https://dev.app.templifying.com/callback',
+        'https://stage.app.templifying.com/callback'
       ],
       LogoutURLs: [
         'http://localhost:3000/logout',
-        'https://app.templify.com/logout'
+        'https://app.templifying.com/logout',
+        'https://dev.app.templifying.com/logout',
+        'https://stage.app.templifying.com/logout'
       ],
       RefreshTokenValidity: 30,
       AccessTokenValidity: 60,
