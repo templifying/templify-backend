@@ -1,7 +1,6 @@
 export const cognitoResources = {
   CognitoUserPool: {
     Type: 'AWS::Cognito::UserPool',
-    DependsOn: ['PreSignUpLambdaFunction', 'PostConfirmationLambdaFunction'],
     Properties: {
       UserPoolName: 'templify-${self:provider.stage}-user-pool',
       UsernameAttributes: ['email'],
