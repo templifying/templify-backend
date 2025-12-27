@@ -3,7 +3,7 @@ export default {
   events: [
     {
       cognitoUserPool: {
-        pool: 'CognitoUserPool',
+        pool: { Ref: 'CognitoUserPool' },
         trigger: 'PreSignUp' as const,
         existing: true
       }
