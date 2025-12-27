@@ -111,7 +111,7 @@ const serverlessConfiguration: AWS = {
       bundle: true,
       minify: false,
       sourcemap: true,
-      exclude: ['aws-sdk', '@sparticuz/chromium-min'],
+      exclude: ['aws-sdk', '@sparticuz/chromium-min', 'puppeteer-core', '@sparticuz/chromium'],
       target: 'node20',
       define: { 'require.resolve': undefined },
       platform: 'node',
