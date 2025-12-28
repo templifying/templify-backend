@@ -3,7 +3,7 @@ export const dynamoDbTables = {
   UsersTable: {
     Type: 'AWS::DynamoDB::Table',
     Properties: {
-      TableName: 'templify-${self:provider.stage}-users',
+      TableName: 'mkpdfs-${self:provider.stage}-users',
       AttributeDefinitions: [
         {
           AttributeName: 'userId',
@@ -48,7 +48,7 @@ export const dynamoDbTables = {
   TokensTable: {
     Type: 'AWS::DynamoDB::Table',
     Properties: {
-      TableName: 'templify-${self:provider.stage}-tokens',
+      TableName: 'mkpdfs-${self:provider.stage}-tokens',
       AttributeDefinitions: [
         {
           AttributeName: 'token',
@@ -91,7 +91,7 @@ export const dynamoDbTables = {
   UsageTable: {
     Type: 'AWS::DynamoDB::Table',
     Properties: {
-      TableName: 'templify-${self:provider.stage}-usage',
+      TableName: 'mkpdfs-${self:provider.stage}-usage',
       AttributeDefinitions: [
         {
           AttributeName: 'userId',
@@ -120,7 +120,7 @@ export const dynamoDbTables = {
   SubscriptionsTable: {
     Type: 'AWS::DynamoDB::Table',
     Properties: {
-      TableName: 'templify-${self:provider.stage}-subscriptions',
+      TableName: 'mkpdfs-${self:provider.stage}-subscriptions',
       AttributeDefinitions: [
         {
           AttributeName: 'userId',
@@ -144,7 +144,7 @@ export const dynamoDbTables = {
   TemplatesTable: {
     Type: 'AWS::DynamoDB::Table',
     Properties: {
-      TableName: 'templify-${self:provider.stage}-templates',
+      TableName: 'mkpdfs-${self:provider.stage}-templates',
       AttributeDefinitions: [
         {
           AttributeName: 'userId',

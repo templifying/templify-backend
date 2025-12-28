@@ -1,5 +1,5 @@
 {
-  "name": "templify-api",
+  "name": "mkpdfs-api",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -29,6 +29,7 @@
     "esbuild": "^0.25.5",
     "puppeteer-core": "^24.11.1",
     "serverless": "^3.40.0",
+    "serverless-domain-manager": "^8.0.0",
     "serverless-esbuild": "^1.55.1",
     "serverless-offline": "^13.8.1",
     "ts-node": "^10.9.2",

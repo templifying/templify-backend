@@ -1,4 +1,4 @@
-# Templify API - Multi-User SaaS PDF Generation Service
+# mkpdfs API - Multi-User SaaS PDF Generation Service
 
 A serverless API for multi-user PDF generation with template management, built on AWS Lambda.
 
@@ -80,7 +80,7 @@ X-Api-Key: tlfy_your_token_here
 ### Generate PDF with API Token
 
 ```bash
-curl -X POST https://api.templify.com/pdf/generate \
+curl -X POST https://apis.mkpdfs.com/pdf/generate \
   -H "X-Api-Key: tlfy_your_token_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -119,7 +119,7 @@ The following are automatically configured:
 ## Project Structure
 
 ```
-templify-api/
+mkpdfs-api/
 ├── src/
 │   ├── functions/       # Lambda functions
 │   ├── libs/           # Shared libraries

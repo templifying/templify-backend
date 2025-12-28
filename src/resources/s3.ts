@@ -2,7 +2,7 @@ export const s3Buckets = {
   AssetsBucket: {
     Type: 'AWS::S3::Bucket',
     Properties: {
-      BucketName: 'templify-${self:provider.stage}-assets',
+      BucketName: 'mkpdfs-${self:provider.stage}-assets',
       BucketEncryption: {
         ServerSideEncryptionConfiguration: [
           {

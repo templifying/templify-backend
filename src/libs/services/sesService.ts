@@ -11,7 +11,7 @@ interface SendPdfEmailOptions {
 
 export class SESService {
   private readonly MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5MB
-  private readonly FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@templify.com';
+  private readonly FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@mkpdfs.com';
   
   async sendPdfEmail(options: SendPdfEmailOptions): Promise<void> {
     const { recipients, pdfBuffer, pdfUrl, fileName } = options;
@@ -57,7 +57,7 @@ export class SESService {
     const boundary = `----=_NextPart_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     
     const message = [
-      `From: Templify <${this.FROM_EMAIL}>`,
+      `From: mkpdfs <${this.FROM_EMAIL}>`,
       `To: ${options.recipients.join(', ')}`,
       `Subject: ${options.subject}`,
       'MIME-Version: 1.0',
@@ -102,7 +102,7 @@ export class SESService {
     const boundary = `----=_NextPart_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     
     const message = [
-      `From: Templify <${this.FROM_EMAIL}>`,
+      `From: mkpdfs <${this.FROM_EMAIL}>`,
       `To: ${options.recipients.join(', ')}`,
       `Subject: ${options.subject}`,
       'MIME-Version: 1.0',
@@ -158,11 +158,11 @@ export class SESService {
       <p>The PDF is attached to this email for your convenience. You can also download it using the secure link provided in the plain text version of this email.</p>
       
       <p style="margin-top: 30px; font-style: italic; color: #6c757d;">
-        This is an automated message from Templify. Please do not reply to this email.
+        This is an automated message from mkpdfs. Please do not reply to this email.
       </p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Templify. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} mkpdfs. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -214,11 +214,11 @@ export class SESService {
       </p>
       
       <p style="margin-top: 30px; font-style: italic; color: #6c757d;">
-        This is an automated message from Templify. Please do not reply to this email.
+        This is an automated message from mkpdfs. Please do not reply to this email.
       </p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Templify. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} mkpdfs. All rights reserved.</p>
     </div>
   </div>
 </body>

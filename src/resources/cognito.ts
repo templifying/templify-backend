@@ -2,7 +2,7 @@ export const cognitoResources = {
   CognitoUserPool: {
     Type: 'AWS::Cognito::UserPool',
     Properties: {
-      UserPoolName: 'templify-${self:provider.stage}-user-pool',
+      UserPoolName: 'mkpdfs-${self:provider.stage}-user-pool',
       UsernameAttributes: ['email'],
       AutoVerifiedAttributes: ['email'],
       Schema: [
@@ -44,11 +44,11 @@ export const cognitoResources = {
     }
   },
 
-  // User Pool Domain (required for OAuth hosted UI)
+  // Cognito Hosted UI Domain (required for OAuth flows)
   CognitoUserPoolDomain: {
     Type: 'AWS::Cognito::UserPoolDomain',
     Properties: {
-      Domain: 'templify-${self:provider.stage}',
+      Domain: 'auth-mkpdfs-${self:provider.stage}',
       UserPoolId: { Ref: 'CognitoUserPool' }
     }
   },
@@ -61,13 +61,16 @@ export const cognitoResources = {
       ProviderName: 'Google',
       ProviderType: 'Google',
       ProviderDetails: {
-        client_id: '{{resolve:ssm:/templify/${self:provider.stage}/google-oauth/client-id}}',
-        client_secret: '{{resolve:ssm:/templify/${self:provider.stage}/google-oauth/client-secret}}',
+        client_id: '{{resolve:secretsmanager:mkpdfs/google-oauth/${self:provider.stage}:SecretString:client_id}}',
+        client_secret: '{{resolve:secretsmanager:mkpdfs/google-oauth/${self:provider.stage}:SecretString:client_secret}}',
         authorize_scopes: 'openid email profile'
       },
       AttributeMapping: {
         email: 'email',
-        name: 'name'
+        name: 'name',
+        picture: 'picture',
+        given_name: 'given_name',
+        family_name: 'family_name'
       }
     }
   },
@@ -76,7 +79,7 @@ export const cognitoResources = {
     Type: 'AWS::Cognito::UserPoolClient',
     DependsOn: ['CognitoUserPoolIdentityProviderGoogle'],
     Properties: {
-      ClientName: 'templify-${self:provider.stage}-web-client',
+      ClientName: 'mkpdfs-${self:provider.stage}-web-client',
       UserPoolId: {
         Ref: 'CognitoUserPool'
       },
@@ -93,15 +96,11 @@ export const cognitoResources = {
       AllowedOAuthFlowsUserPoolClient: true,
       CallbackURLs: [
         'http://localhost:3000/callback',
-        'https://app.templifying.com/callback',
-        'https://dev.app.templifying.com/callback',
-        'https://stage.app.templifying.com/callback'
+        'https://mkpdfs.com/callback'
       ],
       LogoutURLs: [
         'http://localhost:3000/logout',
-        'https://app.templifying.com/logout',
-        'https://dev.app.templifying.com/logout',
-        'https://stage.app.templifying.com/logout'
+        'https://mkpdfs.com/logout'
       ],
       RefreshTokenValidity: 30,
       AccessTokenValidity: 60,
@@ -117,7 +116,7 @@ export const cognitoResources = {
   CognitoIdentityPool: {
     Type: 'AWS::Cognito::IdentityPool',
     Properties: {
-      IdentityPoolName: 'templify_${self:provider.stage}_identity_pool',
+      IdentityPoolName: 'mkpdfs_${self:provider.stage}_identity_pool',
       AllowUnauthenticatedIdentities: false,
       CognitoIdentityProviders: [
         {
