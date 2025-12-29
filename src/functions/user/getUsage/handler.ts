@@ -13,20 +13,20 @@ const getUsage: ValidatedEventAPIGatewayProxyEvent<null> = async (event) => {
 
     // Get current period (month)
     const now = new Date();
-    const currentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
     // Get usage for current period
     const result = await docClient.send(new GetCommand({
       TableName: process.env.USAGE_TABLE!,
       Key: {
         userId,
-        period: currentPeriod
+        yearMonth
       }
     }));
 
     const usage = result.Item || {
       userId,
-      period: currentPeriod,
+      yearMonth,
       pdfGenerations: 0,
       templatesUploaded: 0,
       tokensCreated: 0,
@@ -35,7 +35,7 @@ const getUsage: ValidatedEventAPIGatewayProxyEvent<null> = async (event) => {
 
     return formatJSONResponse({
       usage,
-      currentPeriod
+      currentPeriod: yearMonth
     });
   } catch (error) {
     console.error('Error getting usage:', error);

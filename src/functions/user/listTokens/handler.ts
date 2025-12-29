@@ -11,9 +11,10 @@ const listTokens: ValidatedEventAPIGatewayProxyEvent<null> = async (event) => {
   try {
     const userId = event.userId!;
 
-    // Query tokens for this user
+    // Query tokens for this user using the userId-index GSI
     const result = await docClient.send(new QueryCommand({
       TableName: process.env.TOKENS_TABLE!,
+      IndexName: 'userId-index',
       KeyConditionExpression: 'userId = :userId',
       ExpressionAttributeValues: {
         ':userId': userId
