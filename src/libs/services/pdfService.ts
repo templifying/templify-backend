@@ -1,7 +1,6 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import puppeteer, { Browser } from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import { Readable } from 'stream';
@@ -128,11 +127,13 @@ export class PdfService {
   }
   
   private async generatePdfFromHtml(html: string): Promise<Buffer> {
-    // Always use @sparticuz/chromium for consistent behavior across environments
+    // Dynamic import for ESM compatibility
+    const chromium = await import('@sparticuz/chromium');
+
     const browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless
+      args: chromium.default.args,
+      executablePath: await chromium.default.executablePath(),
+      headless: chromium.default.headless
     });
     
     try {
