@@ -61,6 +61,15 @@ export const s3Buckets = {
             Resource: {
               'Fn::Sub': '${AssetsBucket.Arn}/marketplace/thumbnails/*'
             }
+          },
+          {
+            Sid: 'PublicReadMarketplaceThumbnailsFull',
+            Effect: 'Allow',
+            Principal: '*',
+            Action: 's3:GetObject',
+            Resource: {
+              'Fn::Sub': '${AssetsBucket.Arn}/marketplace/thumbnails-full/*'
+            }
           }
         ]
       }
