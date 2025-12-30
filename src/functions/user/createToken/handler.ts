@@ -46,15 +46,17 @@ const createUserToken: ValidatedEventAPIGatewayProxyEvent<CreateTokenRequest> = 
     // Generate a secure random token
     const rawToken = `tlfy_${randomBytes(32).toString('hex')}`;
     const hashedToken = createHash('sha256').update(rawToken).digest('hex');
-    
+    const tokenId = randomBytes(8).toString('hex'); // Short ID for user-facing operations
+
     // Calculate expiration
-    const expiresAt = expiresInDays 
+    const expiresAt = expiresInDays
       ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
       : null;
-    
+
     // Save token to database
     const tokenData = {
       token: hashedToken,
+      tokenId,
       userId,
       name,
       active: true,
