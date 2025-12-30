@@ -24,13 +24,15 @@ const getUsage: ValidatedEventAPIGatewayProxyEvent<null> = async (event) => {
       }
     }));
 
-    const usage = result.Item || {
+    // Map DB fields to API response fields
+    const item = result.Item || {};
+    const usage = {
       userId,
       yearMonth,
-      pdfGenerations: 0,
-      templatesUploaded: 0,
-      tokensCreated: 0,
-      bytesGenerated: 0
+      pdfGenerations: item.pdfCount || 0,
+      templatesUploaded: item.templateUploads || 0,
+      tokensCreated: item.tokensCreated || 0,
+      bytesGenerated: item.totalSizeBytes || 0
     };
 
     return formatJSONResponse({

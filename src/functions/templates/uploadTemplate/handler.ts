@@ -114,11 +114,11 @@ const uploadTemplate: ValidatedEventAPIGatewayProxyEvent<UploadTemplateBody> = a
 
       const currentCount = existingTemplates.Count || 0;
 
-      if (subscriptionLimits.maxTemplates !== -1 && currentCount >= subscriptionLimits.maxTemplates) {
+      if (subscriptionLimits.templatesAllowed !== -1 && currentCount >= subscriptionLimits.templatesAllowed) {
         return formatJSONResponse({
-          message: `Template limit reached. Your plan allows ${subscriptionLimits.maxTemplates} templates.`,
+          message: `Template limit reached. Your plan allows ${subscriptionLimits.templatesAllowed} templates.`,
           currentCount,
-          limit: subscriptionLimits.maxTemplates
+          limit: subscriptionLimits.templatesAllowed
         }, 429);
       }
     }
