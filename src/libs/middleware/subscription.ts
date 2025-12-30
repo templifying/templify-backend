@@ -5,36 +5,41 @@ const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export interface SubscriptionLimits {
-  pdfGenerationsPerMonth: number;
+  pagesPerMonth: number;  // Each data object = 1 page
   templatesAllowed: number;
   apiTokensAllowed: number;
   maxPdfSizeMB: number;
+  aiGenerationsPerMonth: number;  // AI template generations per month
 }
 
 export const SUBSCRIPTION_PLANS: Record<string, SubscriptionLimits> = {
   free: {
-    pdfGenerationsPerMonth: 100,
+    pagesPerMonth: 100,
     templatesAllowed: 5,
     apiTokensAllowed: 1,
-    maxPdfSizeMB: 10
+    maxPdfSizeMB: 10,
+    aiGenerationsPerMonth: 0  // No AI access
   },
   starter: {
-    pdfGenerationsPerMonth: 1000,
+    pagesPerMonth: 1000,
     templatesAllowed: 50,
     apiTokensAllowed: 3,
-    maxPdfSizeMB: 25
+    maxPdfSizeMB: 25,
+    aiGenerationsPerMonth: 1
   },
   professional: {
-    pdfGenerationsPerMonth: 10000,
+    pagesPerMonth: 10000,
     templatesAllowed: 500,
     apiTokensAllowed: 10,
-    maxPdfSizeMB: 50
+    maxPdfSizeMB: 50,
+    aiGenerationsPerMonth: 15
   },
   enterprise: {
-    pdfGenerationsPerMonth: -1, // unlimited
+    pagesPerMonth: -1, // unlimited
     templatesAllowed: -1, // unlimited
     apiTokensAllowed: -1, // unlimited
-    maxPdfSizeMB: 100
+    maxPdfSizeMB: 100,
+    aiGenerationsPerMonth: -1  // unlimited
   }
 };
 

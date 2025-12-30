@@ -16,16 +16,40 @@ interface GeneratePdfRequest {
   sendEmail?: string[];
 }
 
+const MAX_ITEMS_PER_REQUEST = 50;
+
 const generatePdf: ValidatedEventAPIGatewayProxyEvent<GeneratePdfRequest> = async (event, context) => {
   // Don't wait for empty event loop
   context.callbackWaitsForEmptyEventLoop = false;
-  
+
   try {
     const userId = event.userId!;
     const { templateId, data, async = false, sendEmail } = event.body;
+
+    // Validate array size - each object = 1 page
+    const pageCount = Array.isArray(data) ? data.length : 1;
+
+    if (pageCount > MAX_ITEMS_PER_REQUEST) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': true,
+        },
+        body: JSON.stringify({
+          message: `Maximum ${MAX_ITEMS_PER_REQUEST} items allowed per request`,
+          itemsReceived: pageCount,
+          maxAllowed: MAX_ITEMS_PER_REQUEST
+        })
+      };
+    }
     
+    // Store pageCount on event for usage tracking middleware
+    (event as any).pageCount = pageCount;
+
     if (async) {
-      // Invoke async Lambda
+      // Invoke async Lambda with pageCount for usage tracking
       const command = new InvokeCommand({
         FunctionName: `${process.env.SERVICE_NAME}-${process.env.STAGE}-generatePdfAsync`,
         InvocationType: 'Event',
@@ -33,16 +57,18 @@ const generatePdf: ValidatedEventAPIGatewayProxyEvent<GeneratePdfRequest> = asyn
           userId,
           templateId,
           data,
-          sendEmail
+          sendEmail,
+          pageCount
         }))
       });
-      
+
       await lambdaClient.send(command);
-      
+
       return formatJSONResponse({
         success: true,
         message: 'PDF generation started. You will receive an email when ready.',
-        async: true
+        async: true,
+        pagesGenerated: pageCount
       });
     } else {
       // Generate PDF synchronously
@@ -52,12 +78,13 @@ const generatePdf: ValidatedEventAPIGatewayProxyEvent<GeneratePdfRequest> = asyn
         data,
         sendEmail
       });
-      
+
       return formatJSONResponse({
         success: true,
         pdfUrl: result.url,
         expiresIn: '5 days',
-        size: result.sizeBytes
+        size: result.sizeBytes,
+        pagesGenerated: pageCount
       });
     }
   } catch (error) {

@@ -40,8 +40,12 @@ export const usageTrackingMiddleware = (options: UsageTrackingOptions) => {
         // Track different types of actions
         switch (options.actionType) {
           case 'pdf_generation':
+            // Use pageCount from handler (each object in array = 1 page)
+            const pageCount = handler.event.pageCount || 1;
             addExpressions.push('pdfCount :inc');
-            expressionAttributeValues[':inc'] = 1;
+            expressionAttributeValues[':inc'] = pageCount;
+
+            console.log('[UsageTracking] PDF generation - pages:', pageCount);
 
             if (options.sizeInBytes) {
               addExpressions.push('totalSizeBytes :size');
@@ -102,37 +106,61 @@ export const usageTrackingMiddleware = (options: UsageTrackingOptions) => {
   };
 };
 
+// Helper to calculate page count from request data
+const calculatePageCount = (data: any): number => {
+  return Array.isArray(data) ? data.length : 1;
+};
+
 // Helper middleware to check limits before allowing action
 export const checkLimitsMiddleware = (limitType: 'pdf_generation' | 'template_upload' | 'token_creation') => {
   return {
     before: async (handler: any): Promise<any> => {
       const limits = handler.event.subscriptionLimits;
       const usage = handler.event.currentUsage;
-      
+
       if (!limits || !usage) {
         return; // Let request proceed if we don't have limit data
       }
-      
+
       let exceeded = false;
       let message = '';
-      
+      let responseBody: Record<string, any> = {};
+
       switch (limitType) {
         case 'pdf_generation':
-          if (limits.pdfGenerationsPerMonth !== -1 && usage.pdfCount >= limits.pdfGenerationsPerMonth) {
+          // Calculate pages requested from request body
+          const body = handler.event.body;
+          const pagesRequested = body?.data ? calculatePageCount(body.data) : 1;
+          const currentPages = usage.pdfCount || 0;
+          const pageLimit = limits.pagesPerMonth;
+          const pagesRemaining = pageLimit === -1 ? Infinity : pageLimit - currentPages;
+
+          // Check if this request would exceed the limit
+          if (pageLimit !== -1 && currentPages + pagesRequested > pageLimit) {
             exceeded = true;
-            message = `Monthly PDF generation limit reached (${limits.pdfGenerationsPerMonth})`;
+            message = pagesRemaining <= 0
+              ? `Monthly page limit reached (${pageLimit} pages)`
+              : `Request would exceed monthly page limit. You have ${pagesRemaining} pages remaining but requested ${pagesRequested}.`;
+            responseBody = {
+              message,
+              pagesRequested,
+              pagesRemaining: Math.max(0, pagesRemaining),
+              currentUsage: currentPages,
+              limit: pageLimit,
+              plan: handler.event.subscription?.plan
+            };
           }
           break;
-          
+
         case 'template_upload':
           // Would need to count templates from templates table
           break;
-          
+
         case 'token_creation':
           // Would need to count tokens from tokens table
           break;
       }
-      
+
       if (exceeded) {
         return {
           statusCode: 429,
@@ -141,12 +169,7 @@ export const checkLimitsMiddleware = (limitType: 'pdf_generation' | 'template_up
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Credentials': true,
           },
-          body: JSON.stringify({
-            message,
-            currentUsage: usage.pdfCount,
-            limit: limits.pdfGenerationsPerMonth,
-            plan: handler.event.subscription.plan
-          })
+          body: JSON.stringify(responseBody)
         };
       }
     }

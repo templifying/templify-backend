@@ -51,7 +51,7 @@ const getUsage: ValidatedEventAPIGatewayProxyEvent<null> = async (event) => {
     const usage = {
       userId,
       yearMonth,
-      pdfGenerations: item.pdfCount || 0,
+      pagesGenerated: item.pdfCount || 0,  // Each data object = 1 page
       templatesUploaded: templatesResult.Count || 0,
       tokensCreated: tokensResult.Count || 0,
       bytesGenerated: item.totalSizeBytes || 0
