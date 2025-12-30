@@ -22,10 +22,11 @@ const getUserProfile: ValidatedEventAPIGatewayProxyEvent<null> = async (event: a
     
     // If user doesn't exist, create profile
     if (!user) {
-      const cognitoIdentity = event.requestContext.identity;
+      // Use email from JWT token (set by dualAuth middleware), fallback to unknown
+      const email = event.userEmail || 'unknown@example.com';
       user = {
         userId,
-        email: cognitoIdentity?.userArn?.split('/').pop() || 'unknown',
+        email,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         settings: {

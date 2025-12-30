@@ -25,6 +25,7 @@
   "devDependencies": {
     "@serverless/typescript": "^4.15.1",
     "@types/aws-lambda": "^8.10.150",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.0.7",
     "esbuild": "^0.25.5",
     "puppeteer-core": "^24.11.1",
@@ -46,6 +47,7 @@
     "@middy/http-error-handler": "^6.3.2",
     "@middy/http-json-body-parser": "^6.3.2",
     "handlebars": "^4.7.8",
+    "jsonwebtoken": "^9.0.3",
     "stripe": "^20.1.0",
     "uuid": "^11.1.0"
   }

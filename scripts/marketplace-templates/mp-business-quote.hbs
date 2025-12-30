@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #333; padding: 40px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #10b981; }
+    .company h1 { font-size: 24px; color: #10b981; margin-bottom: 4px; }
+    .quote-badge { background: #10b981; color: white; padding: 8px 24px; font-size: 20px; font-weight: bold; border-radius: 4px; }
+    .meta { display: flex; gap: 40px; margin-bottom: 30px; }
+    .meta-item { flex: 1; }
+    .meta-item label { display: block; font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+    .meta-item span { font-size: 14px; font-weight: 500; }
+    .client-box { background: #f0fdf4; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 4px solid #10b981; }
+    .client-box h3 { font-size: 11px; color: #666; text-transform: uppercase; margin-bottom: 8px; }
+    .client-box p { font-size: 16px; font-weight: 500; }
+    .project-title { font-size: 20px; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; }
+    .services { margin-bottom: 30px; }
+    .service { display: flex; justify-content: space-between; padding: 16px; border-bottom: 1px solid #e5e7eb; }
+    .service:nth-child(even) { background: #f9fafb; }
+    .service-info h4 { font-size: 14px; margin-bottom: 4px; }
+    .service-info p { font-size: 12px; color: #666; }
+    .service-price { font-size: 16px; font-weight: bold; color: #10b981; }
+    .total-section { display: flex; justify-content: flex-end; margin-bottom: 30px; }
+    .total-box { background: #10b981; color: white; padding: 20px 40px; border-radius: 8px; text-align: center; }
+    .total-box label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 4px; }
+    .total-box span { font-size: 28px; font-weight: bold; }
+    .notes { background: #fef3c7; padding: 16px; border-radius: 8px; margin-bottom: 30px; }
+    .notes h4 { font-size: 12px; color: #92400e; margin-bottom: 8px; }
+    .notes p { font-size: 13px; color: #92400e; line-height: 1.5; }
+    .validity { text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; }
+    .validity p { font-size: 13px; color: #666; }
+    .validity strong { color: #333; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="company">
+      <h1>{{companyName}}</h1>
+    </div>
+    <div class="quote-badge">QUOTE</div>
+  </div>
+
+  <div class="meta">
+    <div class="meta-item">
+      <label>Quote Number</label>
+      <span>{{quoteNumber}}</span>
+    </div>
+    <div class="meta-item">
+      <label>Date</label>
+      <span>{{quoteDate}}</span>
+    </div>
+    <div class="meta-item">
+      <label>Valid Until</label>
+      <span>{{validUntil}}</span>
+    </div>
+  </div>
+
+  <div class="client-box">
+    <h3>Prepared For</h3>
+    <p>{{clientName}}</p>
+  </div>
+
+  <h2 class="project-title">{{projectTitle}}</h2>
+
+  <div class="services">
+    {{#each services}}
+    <div class="service">
+      <div class="service-info">
+        <h4>{{name}}</h4>
+        <p>{{description}}</p>
+      </div>
+      <div class="service-price">${{price}}</div>
+    </div>
+    {{/each}}
+  </div>
+
+  <div class="total-section">
+    <div class="total-box">
+      <label>Total Quote</label>
+      <span>${{total}}</span>
+    </div>
+  </div>
+
+  {{#if notes}}
+  <div class="notes">
+    <h4>Terms & Notes</h4>
+    <p>{{notes}}</p>
+  </div>
+  {{/if}}
+
+  <div class="validity">
+    <p>This quote is valid until <strong>{{validUntil}}</strong>. Contact us to proceed with this quote.</p>
+  </div>
+</body>
+</html>

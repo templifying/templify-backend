@@ -1,6 +1,13 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { createHash } from 'crypto';
+import { decode } from 'jsonwebtoken';
+
+interface JwtPayload {
+  sub?: string;
+  email?: string;
+  name?: string;
+}
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -14,9 +21,28 @@ export const dualAuthMiddleware = (options: DualAuthOptions = { requireAuth: tru
   return {
     before: async (handler: any): Promise<any> => {
       let userId: string | undefined;
+      let userEmail: string | undefined;
+
+      // First, try to extract user info from JWT Bearer token
+      // This is the primary auth method for web clients and works in offline mode
+      const authHeader = handler.event.headers?.['Authorization'] ||
+                         handler.event.headers?.['authorization'];
+
+      if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        try {
+          const decoded = decode(token) as JwtPayload;
+          if (decoded?.sub) {
+            userId = decoded.sub;
+            userEmail = decoded.email;
+          }
+        } catch (e) {
+          console.warn('Failed to decode JWT:', e);
+        }
+      }
       
-      // First, check for API token if allowed
-      if (options.allowApiToken) {
+      // Check for API token if allowed and no JWT userId found
+      if (!userId && options.allowApiToken) {
         const apiToken = handler.event.headers?.['x-api-key'] || handler.event.headers?.['X-Api-Key'];
         
         if (apiToken) {
@@ -70,9 +96,12 @@ export const dualAuthMiddleware = (options: DualAuthOptions = { requireAuth: tru
         };
       }
       
-      // Attach userId to event for downstream use
+      // Attach userId and userEmail to event for downstream use
       if (userId) {
         handler.event.userId = userId;
+      }
+      if (userEmail) {
+        handler.event.userEmail = userEmail;
       }
     }
   };

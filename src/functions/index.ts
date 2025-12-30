@@ -23,3 +23,9 @@ export { default as postConfirmation } from './cognito/postConfirmation';
 export { default as stripeCreateCheckoutSession } from './stripe/createCheckoutSession';
 export { default as stripeWebhook } from './stripe/webhook';
 export { default as stripeCreatePortalSession } from './stripe/createPortalSession';
+
+// Marketplace functions (public browse, authenticated use)
+export { default as marketplaceListTemplates } from './marketplace/listTemplates';
+export { default as marketplaceGetTemplate } from './marketplace/getTemplate';
+export { default as marketplaceGetTemplatePreview } from './marketplace/getTemplatePreview';
+export { default as marketplaceUseTemplate } from './marketplace/useTemplate';

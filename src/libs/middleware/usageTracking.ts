@@ -5,7 +5,7 @@ const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 interface UsageTrackingOptions {
-  actionType: 'pdf_generation' | 'template_upload' | 'token_creation';
+  actionType: 'pdf_generation' | 'template_upload' | 'token_creation' | 'ai_generation';
   sizeInBytes?: number;
 }
 
@@ -61,6 +61,12 @@ export const usageTrackingMiddleware = (options: UsageTrackingOptions) => {
           case 'token_creation':
             addExpressions.push('tokensCreated :inc');
             expressionAttributeValues[':inc'] = 1;
+            break;
+
+          case 'ai_generation':
+            addExpressions.push('aiGenerations :inc');
+            expressionAttributeValues[':inc'] = 1;
+            console.log('[UsageTracking] AI generation tracked');
             break;
         }
 

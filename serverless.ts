@@ -33,6 +33,7 @@ const serverlessConfiguration: AWS = {
       USAGE_TABLE: 'mkpdfs-${self:provider.stage}-usage',
       SUBSCRIPTIONS_TABLE: 'mkpdfs-${self:provider.stage}-subscriptions',
       TEMPLATES_TABLE: 'mkpdfs-${self:provider.stage}-templates',
+      MARKETPLACE_TABLE: 'mkpdfs-${self:provider.stage}-marketplace',
 
       // S3 buckets
       ASSETS_BUCKET: 'mkpdfs-${self:provider.stage}-bucket',

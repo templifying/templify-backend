@@ -167,5 +167,44 @@ export const dynamoDbTables = {
       ],
       BillingMode: 'PAY_PER_REQUEST'
     }
+  },
+
+  // Marketplace templates table - platform-owned public templates
+  MarketplaceTable: {
+    Type: 'AWS::DynamoDB::Table',
+    Properties: {
+      TableName: 'mkpdfs-${self:provider.stage}-marketplace',
+      AttributeDefinitions: [
+        {
+          AttributeName: 'templateId',
+          AttributeType: 'S'
+        },
+        {
+          AttributeName: 'category',
+          AttributeType: 'S'
+        }
+      ],
+      KeySchema: [
+        {
+          AttributeName: 'templateId',
+          KeyType: 'HASH'
+        }
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'category-index',
+          KeySchema: [
+            {
+              AttributeName: 'category',
+              KeyType: 'HASH'
+            }
+          ],
+          Projection: {
+            ProjectionType: 'ALL'
+          }
+        }
+      ],
+      BillingMode: 'PAY_PER_REQUEST'
+    }
   }
 };
