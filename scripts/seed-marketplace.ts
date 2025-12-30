@@ -360,6 +360,39 @@ const templates: Omit<MarketplaceTemplate, 's3Key' | 'createdAt' | 'updatedAt'>[
       rsvpPhone: '(555) 987-6543',
       specialInstructions: 'Please let us know of any food allergies.'
     })
+  },
+  {
+    templateId: 'mp-personal-cover-letter',
+    category: 'personal',
+    name: 'Cover Letter',
+    description: 'Professional cover letter template for job applications. Modern design with sections for key achievements and why you\'re the perfect fit.',
+    tags: ['cover letter', 'job application', 'career', 'professional', 'hiring'],
+    popularity: 0,
+    sampleDataJson: JSON.stringify({
+      applicantName: 'Alexandra Johnson',
+      applicantEmail: 'alex.johnson@email.com',
+      applicantPhone: '(555) 123-4567',
+      applicantLocation: 'San Francisco, CA',
+      applicantLinkedIn: 'linkedin.com/in/alexjohnson',
+      applicantTitle: 'Senior Software Engineer',
+      date: 'January 15, 2025',
+      hiringManagerName: 'Ms. Sarah Chen',
+      hiringManagerTitle: 'Engineering Director',
+      companyName: 'TechVision Inc.',
+      companyAddress: '456 Innovation Drive, San Francisco, CA 94102',
+      positionTitle: 'Staff Software Engineer',
+      openingParagraph: 'I am writing to express my enthusiastic interest in the Staff Software Engineer position at TechVision Inc. With over 8 years of experience building scalable systems and leading high-performing engineering teams, I am excited about the opportunity to contribute to your mission of revolutionizing enterprise software.',
+      highlightText: 'I thrive at the intersection of technical excellence and team leadership, consistently delivering projects that exceed expectations while mentoring the next generation of engineers.',
+      experienceParagraph: 'In my current role at Tech Giants Inc., I have led the development of a microservices architecture that serves over 10 million users daily. I spearheaded the migration from a monolithic system, reducing deployment time by 60% and improving system reliability to 99.99% uptime.',
+      keyAchievements: [
+        'Architected and deployed a real-time data pipeline processing 1M+ events per second',
+        'Mentored 5 junior developers, with 3 receiving promotions within 18 months',
+        'Reduced infrastructure costs by 40% through optimization and cloud-native redesign',
+        'Led cross-functional team of 12 engineers delivering critical product launch on schedule'
+      ],
+      whyCompanyParagraph: 'I am particularly drawn to TechVision\'s commitment to innovation and your recent work on AI-powered enterprise solutions. Your engineering blog posts on distributed systems have been invaluable to my own learning, and I would be honored to contribute to such a forward-thinking team.',
+      closingParagraph: 'I would welcome the opportunity to discuss how my technical expertise and leadership experience align with TechVision\'s goals. Thank you for considering my application. I look forward to speaking with you soon.'
+    })
   }
 ];
 
