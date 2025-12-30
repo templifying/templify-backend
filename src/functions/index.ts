@@ -29,3 +29,6 @@ export { default as marketplaceListTemplates } from './marketplace/listTemplates
 export { default as marketplaceGetTemplate } from './marketplace/getTemplate';
 export { default as marketplaceGetTemplatePreview } from './marketplace/getTemplatePreview';
 export { default as marketplaceUseTemplate } from './marketplace/useTemplate';
+
+// AI functions (AWS_IAM only, premium feature)
+export { default as generateAITemplate } from './ai/generateTemplate';

@@ -116,6 +116,16 @@ const serverlessConfiguration: AWS = {
             Resource: [
               'arn:aws:ssm:${self:provider.region}:*:parameter/mkpdfs/${self:provider.stage}/*'
             ]
+          },
+          {
+            Effect: 'Allow',
+            Action: [
+              'bedrock:InvokeModel'
+            ],
+            Resource: [
+              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-sonnet-*',
+              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-haiku-*'
+            ]
           }
         ]
       }
