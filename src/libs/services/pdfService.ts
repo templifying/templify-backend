@@ -33,7 +33,7 @@ export class PdfService {
   constructor() {
     this.registerHandlebarsHelpers();
   }
-  
+
   private registerHandlebarsHelpers(): void {
     Handlebars.registerHelper('ifEq', function (this: any, a: any, b: any, options: any) {
       if (a == b) return options.fn(this);
@@ -43,13 +43,13 @@ export class PdfService {
     Handlebars.registerHelper('gt', function (a, b) {
       return (a > b);
     });
-    
+
     Handlebars.registerHelper('formatDate', function (date: any) {
       // Simple date formatter
       const d = new Date(date);
       return d.toLocaleDateString();
     });
-    
+
     Handlebars.registerHelper('formatCurrency', function (amount: number) {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -57,14 +57,14 @@ export class PdfService {
       }).format(amount);
     });
   }
-  
+
   async generatePdf(options: GeneratePdfOptions): Promise<PdfResult> {
     const { userId, templateId, data, sendEmail } = options;
 
     // Get compiled template (with caching)
     const compiledTemplate = await this.getCompiledTemplate(userId, templateId);
     let html: string;
-    
+
     // Handle array data for batch processing
     if (Array.isArray(data)) {
       const htmlPages = data.map(item => compiledTemplate(item));
@@ -72,14 +72,14 @@ export class PdfService {
     } else {
       html = compiledTemplate(data);
     }
-    
+
     // Generate PDF
     const pdfBuffer = await this.generatePdfFromHtml(html);
-    
+
     // Upload to S3
     const pdfId = uuidv4();
     const pdfKey = `${userId}/pdfs/${pdfId}.pdf`;
-    
+
     await s3Client.send(new PutObjectCommand({
       Bucket: process.env.ASSETS_BUCKET!,
       Key: pdfKey,
@@ -91,13 +91,13 @@ export class PdfService {
         generatedAt: new Date().toISOString()
       }
     }));
-    
+
     // Generate pre-signed URL (5 days expiry)
     const url = await getSignedUrl(s3Client, new GetObjectCommand({
       Bucket: process.env.ASSETS_BUCKET!,
       Key: pdfKey
     }), { expiresIn: 5 * 24 * 60 * 60 }); // 5 days
-    
+
     // Send email if requested
     if (sendEmail && sendEmail.length > 0) {
       await sesService.sendPdfEmail({
@@ -107,14 +107,14 @@ export class PdfService {
         fileName: `${templateId}_${new Date().toISOString().split('T')[0]}.pdf`
       });
     }
-    
+
     return {
       url,
       key: pdfKey,
       sizeBytes: pdfBuffer.length
     };
   }
-  
+
   private async generatePdfFromHtml(html: string): Promise<Buffer> {
     const browser = await this.getBrowser();
 
@@ -150,37 +150,18 @@ export class PdfService {
       return browserInstance;
     }
 
-    // Optimized Chromium args for Lambda
-    const chromiumArgs = [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',  // Avoid /dev/shm issues in Lambda
-      '--disable-gpu',             // No GPU needed for PDF generation
-      '--single-process',          // Reduce process overhead
-      '--no-zygote',               // Faster startup
-      '--hide-scrollbars',
-      '--disable-web-security',
-    ];
+    // Dynamic import for ESM compatibility
+    const chromium = await import('@sparticuz/chromium');
 
-    if (process.env.IS_OFFLINE) {
-      browserInstance = await puppeteer.launch({
-        args: chromiumArgs,
-        executablePath: process.platform === 'darwin'
-          ? '/Applications/Chromium.app/Contents/MacOS/Chromium'
-          : 'chromium-browser',
-        headless: true
-      });
-    } else {
-      browserInstance = await puppeteer.launch({
-        args: chromiumArgs,
-        executablePath: process.env.CHROMIUM_PATH || '/opt/nodejs/node_modules/@sparticuz/chromium/bin',
-        headless: true
-      });
-    }
+    browserInstance = await puppeteer.launch({
+      args: chromium.default.args,
+      executablePath: await chromium.default.executablePath(),
+      headless: chromium.default.headless
+    });
 
     return browserInstance;
   }
-  
+
   private async streamToString(stream: Readable): Promise<string> {
     const chunks: Buffer[] = [];
     return new Promise((resolve, reject) => {

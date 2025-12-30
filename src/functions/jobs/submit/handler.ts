@@ -13,6 +13,24 @@ const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
 const sqsClient = new SQSClient({});
 
+// Get SQS queue URL - handle cases where CloudFormation refs aren't resolved (e.g., sls offline)
+const getQueueUrl = (): string => {
+  const queueUrl = process.env.PDF_GENERATION_QUEUE_URL;
+
+  // If it's a valid URL string, use it directly
+  if (typeof queueUrl === 'string' && queueUrl.startsWith('https://')) {
+    return queueUrl;
+  }
+
+  // CloudFormation ref not resolved - construct the real AWS URL
+  // AWS SQS URL format: https://sqs.{region}.amazonaws.com/{account-id}/{queue-name}
+  const region = process.env.REGION || 'us-east-1';
+  const stage = process.env.STAGE || 'dev';
+  const queueName = `mkpdfs-${stage}-pdf-generation`;
+
+  return `https://sqs.${region}.amazonaws.com/197837191835/${queueName}`;
+};
+
 interface SubmitJobRequest {
   templateId: string;
   data: any;
@@ -29,6 +47,8 @@ const submitJob: ValidatedEventAPIGatewayProxyEvent<SubmitJobRequest> = async (e
   try {
     const userId = event.userId!;
     const { templateId, data, webhookUrl, webhookSecret, sendEmail } = event.body;
+
+    console.log('[submitJob] Request:', { userId, templateId, table: process.env.JOBS_TABLE, queueUrl: process.env.PDF_GENERATION_QUEUE_URL });
 
     // Validate required fields
     if (!templateId) {
@@ -87,9 +107,14 @@ const submitJob: ValidatedEventAPIGatewayProxyEvent<SubmitJobRequest> = async (e
       Item: jobRecord
     }));
 
+    console.log('[submitJob] Job created in DynamoDB:', { jobId, userId, status: 'pending' });
+
     // Send message to SQS queue
+    const queueUrl = getQueueUrl();
+    console.log('[submitJob] Sending to SQS:', { queueUrl });
+
     await sqsClient.send(new SendMessageCommand({
-      QueueUrl: process.env.PDF_GENERATION_QUEUE_URL,
+      QueueUrl: queueUrl,
       MessageBody: JSON.stringify({
         jobId,
         userId,
@@ -99,6 +124,8 @@ const submitJob: ValidatedEventAPIGatewayProxyEvent<SubmitJobRequest> = async (e
         pageCount
       })
     }));
+
+    console.log('[submitJob] SQS message sent successfully');
 
     // Build status URL
     const baseUrl = process.env.FRONTEND_URL?.replace('https://', 'https://apis.').replace('.mkpdfs.com', '.apis.mkpdfs.com') ||
