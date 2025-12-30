@@ -1,6 +1,7 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import puppeteer, { Browser } from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import Handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import { Readable } from 'stream';
@@ -128,8 +129,9 @@ export class PdfService {
   
   private async generatePdfFromHtml(html: string): Promise<Buffer> {
     let browser: Browser;
-    
-    if (process.env.IS_OFFLINE) {
+
+    if (process.env.IS_OFFLINE === 'true') {
+      // Local development - use system Chromium
       browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         executablePath: process.platform === 'darwin'
@@ -138,10 +140,11 @@ export class PdfService {
         headless: true
       });
     } else {
+      // Lambda - use @sparticuz/chromium from layer
       browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--hide-scrollbars', '--disable-web-security'],
-        executablePath: process.env.CHROMIUM_PATH || '/opt/nodejs/node_modules/@sparticuz/chromium/bin',
-        headless: true
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless
       });
     }
     
