@@ -4,6 +4,6 @@ import httpErrorHandler from '@middy/http-error-handler';
 
 export const middyfy = (handler: any) => {
   return middy(handler)
-    .use(middyJsonBodyParser())
+    .use(middyJsonBodyParser({ disableContentTypeError: true }))
     .use(httpErrorHandler());
 };

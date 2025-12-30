@@ -132,8 +132,8 @@ export class PdfService {
     if (process.env.IS_OFFLINE) {
       browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        executablePath: process.platform === 'darwin' 
-          ? '/opt/homebrew/bin/chromium'
+        executablePath: process.platform === 'darwin'
+          ? '/Applications/Chromium.app/Contents/MacOS/Chromium'
           : 'chromium-browser',
         headless: true
       });

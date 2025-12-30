@@ -55,11 +55,9 @@ const generatePdf: ValidatedEventAPIGatewayProxyEvent<GeneratePdfRequest> = asyn
       
       return formatJSONResponse({
         success: true,
-        data: {
-          url: result.url,
-          expiresIn: '5 days',
-          size: result.sizeBytes
-        }
+        pdfUrl: result.url,
+        expiresIn: '5 days',
+        size: result.sizeBytes
       });
     }
   } catch (error) {
