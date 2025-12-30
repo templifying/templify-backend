@@ -1,13 +1,20 @@
 import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import puppeteer, { Browser } from 'puppeteer-core';
-import Handlebars from 'handlebars';
+import Handlebars, { TemplateDelegate } from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import { Readable } from 'stream';
 import { SESService } from './sesService';
 
 const s3Client = new S3Client({});
 const sesService = new SESService();
+
+// Browser instance reuse - survives across warm Lambda invocations
+let browserInstance: Browser | null = null;
+
+// Template compilation cache - avoids re-compiling same templates
+const templateCache = new Map<string, { compiled: TemplateDelegate; timestamp: number }>();
+const TEMPLATE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes TTL to handle template updates
 
 interface GeneratePdfOptions {
   userId: string;
@@ -53,27 +60,9 @@ export class PdfService {
   
   async generatePdf(options: GeneratePdfOptions): Promise<PdfResult> {
     const { userId, templateId, data, sendEmail } = options;
-    
-    // Get template from S3
-    const templateKey = `${userId}/templates/${templateId}.hbs`;
-    const templateCommand = new GetObjectCommand({
-      Bucket: process.env.ASSETS_BUCKET!,
-      Key: templateKey
-    });
-    
-    let templateContent: string;
-    try {
-      const templateResponse = await s3Client.send(templateCommand);
-      templateContent = await this.streamToString(templateResponse.Body as Readable);
-    } catch (error: any) {
-      if (error.name === 'NoSuchKey') {
-        throw new Error(`Template not found: ${templateId}`);
-      }
-      throw error;
-    }
-    
-    // Compile template with data
-    const compiledTemplate = Handlebars.compile(templateContent);
+
+    // Get compiled template (with caching)
+    const compiledTemplate = await this.getCompiledTemplate(userId, templateId);
     let html: string;
     
     // Handle array data for batch processing
@@ -127,44 +116,69 @@ export class PdfService {
   }
   
   private async generatePdfFromHtml(html: string): Promise<Buffer> {
-    let browser: Browser;
-    
+    const browser = await this.getBrowser();
+
+    const page = await browser.newPage();
+    try {
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await page.emulateMediaType('screen');
+
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '0',
+          right: '0',
+          bottom: '0',
+          left: '0'
+        }
+      });
+
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await page.close(); // Close page, not browser (for reuse)
+    }
+  }
+
+  /**
+   * Get or create a reusable browser instance.
+   * Browser is reused across warm Lambda invocations for better performance.
+   */
+  private async getBrowser(): Promise<Browser> {
+    // Check if existing browser is still connected
+    if (browserInstance && browserInstance.isConnected()) {
+      return browserInstance;
+    }
+
+    // Optimized Chromium args for Lambda
+    const chromiumArgs = [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',  // Avoid /dev/shm issues in Lambda
+      '--disable-gpu',             // No GPU needed for PDF generation
+      '--single-process',          // Reduce process overhead
+      '--no-zygote',               // Faster startup
+      '--hide-scrollbars',
+      '--disable-web-security',
+    ];
+
     if (process.env.IS_OFFLINE) {
-      browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      browserInstance = await puppeteer.launch({
+        args: chromiumArgs,
         executablePath: process.platform === 'darwin'
           ? '/Applications/Chromium.app/Contents/MacOS/Chromium'
           : 'chromium-browser',
         headless: true
       });
     } else {
-      browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--hide-scrollbars', '--disable-web-security'],
+      browserInstance = await puppeteer.launch({
+        args: chromiumArgs,
         executablePath: process.env.CHROMIUM_PATH || '/opt/nodejs/node_modules/@sparticuz/chromium/bin',
         headless: true
       });
     }
-    
-    try {
-      const page = await browser.newPage();
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-      await page.emulateMediaType('screen');
-      
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '10mm',
-          right: '10mm',
-          bottom: '10mm',
-          left: '10mm'
-        }
-      });
-      
-      return Buffer.from(pdfBuffer);
-    } finally {
-      await browser.close();
-    }
+
+    return browserInstance;
   }
   
   private async streamToString(stream: Readable): Promise<string> {
@@ -174,5 +188,59 @@ export class PdfService {
       stream.on('error', (err) => reject(err));
       stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
     });
+  }
+
+  /**
+   * Get a compiled Handlebars template with caching.
+   * Templates are cached with a TTL to handle updates while avoiding recompilation.
+   */
+  private async getCompiledTemplate(userId: string, templateId: string): Promise<TemplateDelegate> {
+    const cacheKey = `${userId}:${templateId}`;
+    const now = Date.now();
+
+    // Check cache and TTL
+    const cached = templateCache.get(cacheKey);
+    if (cached && (now - cached.timestamp) < TEMPLATE_CACHE_TTL) {
+      return cached.compiled;
+    }
+
+    // Fetch template from S3
+    const templateKey = `${userId}/templates/${templateId}.hbs`;
+    const templateCommand = new GetObjectCommand({
+      Bucket: process.env.ASSETS_BUCKET!,
+      Key: templateKey
+    });
+
+    let templateContent: string;
+    try {
+      const templateResponse = await s3Client.send(templateCommand);
+      templateContent = await this.streamToString(templateResponse.Body as Readable);
+    } catch (error: any) {
+      if (error.name === 'NoSuchKey') {
+        throw new Error(`Template not found: ${templateId}`);
+      }
+      throw error;
+    }
+
+    // Compile and cache
+    const compiled = Handlebars.compile(templateContent);
+    templateCache.set(cacheKey, { compiled, timestamp: now });
+
+    return compiled;
+  }
+
+  /**
+   * Invalidate a cached template (call after template updates).
+   */
+  static invalidateTemplateCache(userId: string, templateId: string): void {
+    const cacheKey = `${userId}:${templateId}`;
+    templateCache.delete(cacheKey);
+  }
+
+  /**
+   * Clear all cached templates.
+   */
+  static clearTemplateCache(): void {
+    templateCache.clear();
   }
 }
