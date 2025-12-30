@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { formatJSONResponse, formatErrorResponse } from '@libs/apiGateway';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { withThumbnailUrl } from '@libs/thumbnailUrl';
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -23,7 +24,7 @@ export const main: APIGatewayProxyHandler = async (event) => {
       return formatJSONResponse({ message: 'Template not found' }, 404);
     }
 
-    return formatJSONResponse({ template: result.Item });
+    return formatJSONResponse({ template: withThumbnailUrl(result.Item) });
   } catch (error) {
     console.error('Error getting marketplace template:', error);
     return formatErrorResponse(error as Error);

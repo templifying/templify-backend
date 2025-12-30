@@ -29,9 +29,9 @@ export const s3Buckets = {
       },
       PublicAccessBlockConfiguration: {
         BlockPublicAcls: true,
-        BlockPublicPolicy: true,
+        BlockPublicPolicy: false,
         IgnorePublicAcls: true,
-        RestrictPublicBuckets: true
+        RestrictPublicBuckets: false
       },
       CorsConfiguration: {
         CorsRules: [
@@ -41,6 +41,26 @@ export const s3Buckets = {
             AllowedOrigins: ['*'],
             ExposedHeaders: ['ETag'],
             MaxAge: 3000
+          }
+        ]
+      }
+    }
+  },
+  AssetsBucketPolicy: {
+    Type: 'AWS::S3::BucketPolicy',
+    Properties: {
+      Bucket: { Ref: 'AssetsBucket' },
+      PolicyDocument: {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'PublicReadMarketplaceThumbnails',
+            Effect: 'Allow',
+            Principal: '*',
+            Action: 's3:GetObject',
+            Resource: {
+              'Fn::Sub': '${AssetsBucket.Arn}/marketplace/thumbnails/*'
+            }
           }
         ]
       }

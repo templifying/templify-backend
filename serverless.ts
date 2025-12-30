@@ -37,6 +37,7 @@ const serverlessConfiguration: AWS = {
 
       // S3 buckets
       ASSETS_BUCKET: 'mkpdfs-${self:provider.stage}-bucket',
+      ASSETS_BUCKET_URL: 'https://mkpdfs-${self:provider.stage}-bucket.s3.${self:provider.region}.amazonaws.com',
       
       // Cognito
       USER_POOL_ID: { Ref: 'CognitoUserPool' },

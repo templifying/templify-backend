@@ -3,6 +3,7 @@ import { formatJSONResponse, formatErrorResponse } from '@libs/apiGateway';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { withThumbnailUrl } from '@libs/thumbnailUrl';
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -37,10 +38,10 @@ export const main: APIGatewayProxyHandler = async (event) => {
     const content = await s3Response.Body?.transformToString('utf-8');
 
     return formatJSONResponse({
-      template: {
+      template: withThumbnailUrl({
         ...template,
         content
-      }
+      })
     });
   } catch (error) {
     console.error('Error getting marketplace template preview:', error);

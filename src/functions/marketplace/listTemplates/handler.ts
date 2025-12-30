@@ -2,6 +2,7 @@ import { APIGatewayProxyHandler } from 'aws-lambda';
 import { formatJSONResponse, formatErrorResponse } from '@libs/apiGateway';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { withThumbnailUrl } from '@libs/thumbnailUrl';
 
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -44,7 +45,10 @@ export const main: APIGatewayProxyHandler = async (event) => {
       return (a.name || '').localeCompare(b.name || '');
     });
 
-    return formatJSONResponse({ templates });
+    // Add thumbnail URLs to each template
+    const templatesWithThumbnails = templates.map(withThumbnailUrl);
+
+    return formatJSONResponse({ templates: templatesWithThumbnails });
   } catch (error) {
     console.error('Error listing marketplace templates:', error);
     return formatErrorResponse(error as Error);
