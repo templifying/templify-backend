@@ -210,6 +210,9 @@ export class BedrockService {
   // Use Claude Sonnet 4.5 via US inference profile (cross-region)
   private modelId = 'us.anthropic.claude-sonnet-4-5-20250929-v1:0';
 
+  // Timeout for Bedrock API calls (2 minutes) - prevents hung calls from blocking for full Lambda timeout
+  private readonly BEDROCK_TIMEOUT_MS = 120000;
+
   async generateTemplate(options: GenerateTemplateOptions): Promise<GeneratedTemplate> {
     const { prompt, templateType, image, analysisContext, previousTemplate, feedback } = options;
 
@@ -275,19 +278,36 @@ export class BedrockService {
 
     content.push({ type: 'text', text: userPrompt });
 
-    const response = await bedrockClient.send(new InvokeModelCommand({
-      modelId: this.modelId,
-      contentType: 'application/json',
-      accept: 'application/json',
-      body: JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 8192,
-        system: SYSTEM_PROMPT,
-        messages: [
-          { role: 'user', content }
-        ]
-      })
-    }));
+    // Create abort controller with timeout to prevent hung calls
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), this.BEDROCK_TIMEOUT_MS);
+
+    let response;
+    try {
+      response = await bedrockClient.send(
+        new InvokeModelCommand({
+          modelId: this.modelId,
+          contentType: 'application/json',
+          accept: 'application/json',
+          body: JSON.stringify({
+            anthropic_version: 'bedrock-2023-05-31',
+            max_tokens: 8192,
+            system: SYSTEM_PROMPT,
+            messages: [
+              { role: 'user', content }
+            ]
+          })
+        }),
+        { abortSignal: abortController.signal }
+      );
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        throw new Error(`Bedrock API call timed out after ${this.BEDROCK_TIMEOUT_MS / 1000} seconds`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
     const responseContent = responseBody.content[0]?.text;
@@ -420,19 +440,36 @@ export class BedrockService {
 
     content.push({ type: 'text', text: userPrompt });
 
-    const response = await bedrockClient.send(new InvokeModelCommand({
-      modelId: this.modelId,
-      contentType: 'application/json',
-      accept: 'application/json',
-      body: JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 4096,
-        system: ANALYSIS_SYSTEM_PROMPT,
-        messages: [
-          { role: 'user', content }
-        ]
-      })
-    }));
+    // Create abort controller with timeout to prevent hung calls
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), this.BEDROCK_TIMEOUT_MS);
+
+    let response;
+    try {
+      response = await bedrockClient.send(
+        new InvokeModelCommand({
+          modelId: this.modelId,
+          contentType: 'application/json',
+          accept: 'application/json',
+          body: JSON.stringify({
+            anthropic_version: 'bedrock-2023-05-31',
+            max_tokens: 4096,
+            system: ANALYSIS_SYSTEM_PROMPT,
+            messages: [
+              { role: 'user', content }
+            ]
+          })
+        }),
+        { abortSignal: abortController.signal }
+      );
+    } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        throw new Error(`Bedrock API call timed out after ${this.BEDROCK_TIMEOUT_MS / 1000} seconds`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
     const responseContent = responseBody.content[0]?.text;
