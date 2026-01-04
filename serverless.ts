@@ -135,10 +135,9 @@ const serverlessConfiguration: AWS = {
               'bedrock:InvokeModel'
             ],
             Resource: [
-              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-sonnet-*',
-              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-haiku-*',
-              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-sonnet-4-*',
-              'arn:aws:bedrock:${self:provider.region}:*:inference-profile/us.anthropic.claude-*'
+              // Cross-region inference profiles route to any US region
+              'arn:aws:bedrock:*::foundation-model/anthropic.claude-*',
+              'arn:aws:bedrock:*:*:inference-profile/us.anthropic.claude-*'
             ]
           },
           {
