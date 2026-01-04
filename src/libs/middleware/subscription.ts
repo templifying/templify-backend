@@ -25,7 +25,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionLimits> = {
     templatesAllowed: 50,
     apiTokensAllowed: 3,
     maxPdfSizeMB: 25,
-    aiGenerationsPerMonth: 1
+    aiGenerationsPerMonth: 10  // Increased from 1 to 10
   },
   professional: {
     pagesPerMonth: 10000,

@@ -8,6 +8,7 @@ export { default as getUserUsage } from './user/getUsage';
 
 // Template management functions (AWS_IAM only)
 export { default as listUserTemplates } from './templates/listTemplates';
+export { default as getUserTemplate } from './templates/getTemplate';
 export { default as uploadTemplate } from './templates/uploadTemplate';
 export { default as deleteTemplate } from './templates/deleteTemplate';
 
@@ -37,6 +38,10 @@ export { default as marketplaceUseTemplate } from './marketplace/useTemplate';
 
 // AI functions (AWS_IAM only, premium feature)
 export { default as generateAITemplate } from './ai/generateTemplate';
+export { default as submitAIGeneration } from './ai/submitGeneration';
+export { default as processAIGeneration } from './ai/processGeneration';
+export { default as getAIJobStatus } from './ai/getStatus';
+export { default as getAIImageUploadUrl } from './ai/getImageUploadUrl';
 
 // Contact functions (public)
 export { default as contactEnterprise } from './contact/enterpriseContact';

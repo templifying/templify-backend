@@ -71,6 +71,12 @@ cd layers/puppeteer && npm install && cd ../..
 - `processJob`: SQS consumer that processes PDF generation
 - `getJobStatus`: Get job status by jobId
 
+#### AI Template Generation (AWS_IAM only, premium feature)
+- `submitAIGeneration`: Submit async AI template generation job
+- `processAIGeneration`: SQS consumer that calls Bedrock for template generation
+- `getAIJobStatus`: Get AI job status by jobId
+- `getAIImageUploadUrl`: Get presigned S3 URL for uploading reference images
+
 ### Core Services and Patterns
 
 #### Authentication Middleware (`src/libs/middleware/dualAuth.ts`)
@@ -230,6 +236,85 @@ For large PDFs that may timeout, use the job-based async API:
 - `X-Mkpdfs-Event`: `job.completed` or `job.failed`
 - `X-Mkpdfs-Timestamp`: Unix timestamp
 - `X-Mkpdfs-Signature`: `sha256=<HMAC-SHA256>` (if secret provided)
+
+#### AI Template Generation (Async)
+Premium feature for generating PDF templates using Claude AI via AWS Bedrock. Uses async job processing due to generation times of 30+ seconds.
+
+**Endpoints:**
+- `POST /ai/generate-template-async` - Submit AI generation job
+- `GET /ai/jobs/{jobId}` - Poll job status
+- `POST /ai/image-upload-url` - Get presigned URL for large image uploads
+
+**Image Handling:**
+Due to API Gateway's 1MB payload limit, images are handled in two ways:
+1. **Small images (<500KB)**: Sent directly as base64 in request body
+2. **Large images (>500KB)**: Uploaded to S3 first via presigned URL, then S3 key passed to API
+
+**Flow:**
+```
+Frontend                          Backend                         AWS
+   │                                 │                              │
+   ├─[Image >500KB?]─────────────────┤                              │
+   │  Yes: POST /ai/image-upload-url─┼──────────────────────────────┤
+   │       ←── { uploadUrl, s3Key }──┤                              │
+   │       PUT uploadUrl ────────────┼──────────────────────────────┼→ S3
+   │                                 │                              │
+   ├─POST /ai/generate-template-async┤                              │
+   │  { prompt, imageS3Key }         │                              │
+   │       ←── { jobId, status }─────┤                              │
+   │                                 ├──SQS──────────────────────────┤
+   │                                 │                              │
+   ├─GET /ai/jobs/{jobId} (polling)──┤                              │
+   │       ←── { status, template }──┤     processAIGeneration      │
+   │                                 │     ├─Fetch image from S3────┼→ S3
+   │                                 │     ├─Call Bedrock (Claude)──┼→ Bedrock
+   │                                 │     └─Update DynamoDB────────┼→ DynamoDB
+```
+
+**Key Files:**
+- `src/functions/ai/submitGeneration/handler.ts` - Job submission
+- `src/functions/ai/processGeneration/handler.ts` - SQS consumer (calls Bedrock)
+- `src/functions/ai/getStatus/handler.ts` - Job status polling
+- `src/functions/ai/getImageUploadUrl/handler.ts` - Presigned URL for S3 uploads
+- `src/libs/services/bedrockService.ts` - Claude AI integration
+
+**DynamoDB Schema (AI Jobs Table):**
+```typescript
+// AI Jobs Table
+{
+  jobId: string,           // PK (UUID)
+  userId: string,          // GSI (userId-createdAt-index)
+  status: 'pending' | 'processing' | 'completed' | 'failed',
+  prompt: string,
+  hasImage: boolean,
+  imageS3Key?: string,     // S3 key for uploaded reference image
+  previousTemplate?: string,
+  feedback?: string,
+  template?: {             // Set on completion
+    content: string,
+    name: string,
+    description: string
+  },
+  sampleData?: object,
+  error?: string,
+  errorCode?: string,
+  createdAt: string,
+  completedAt?: string,
+  ttl: number              // Auto-delete 7 days after completion
+}
+```
+
+**SQS Configuration:**
+- Main queue: `mkpdfs-{stage}-ai-generation`
+- Dead letter queue: `mkpdfs-{stage}-ai-generation-dlq`
+- Visibility timeout: 10 minutes (AI generation takes 30-60 seconds)
+- Max receive count: 2 (then moves to DLQ)
+
+**S3 Image Storage:**
+- Path: `users/{userId}/ai-images/{imageId}.{ext}`
+- Supported formats: PNG, JPEG, WebP
+- Max file size: 10MB
+- Presigned URL expiry: 5 minutes
 
 #### Environment Configuration
 - Serverless Framework automatically generates table names and bucket names

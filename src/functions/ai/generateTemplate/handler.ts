@@ -105,7 +105,11 @@ const generateTemplate: ValidatedEventAPIGatewayProxyEvent<GenerateTemplateBody>
     });
 
   } catch (error: any) {
-    console.error('Error generating template:', error);
+    console.error('Error generating template:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack?.substring(0, 500)
+    });
 
     // Handle specific Bedrock errors
     if (error.name === 'ThrottlingException') {

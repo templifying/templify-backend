@@ -290,5 +290,56 @@ export const dynamoDbTables = {
         Enabled: true
       }
     }
+  },
+
+  // AI Jobs table - async AI template generation job tracking
+  AIJobsTable: {
+    Type: 'AWS::DynamoDB::Table',
+    Properties: {
+      TableName: 'mkpdfs-${self:provider.stage}-ai-jobs',
+      AttributeDefinitions: [
+        {
+          AttributeName: 'jobId',
+          AttributeType: 'S'
+        },
+        {
+          AttributeName: 'userId',
+          AttributeType: 'S'
+        },
+        {
+          AttributeName: 'createdAt',
+          AttributeType: 'S'
+        }
+      ],
+      KeySchema: [
+        {
+          AttributeName: 'jobId',
+          KeyType: 'HASH'
+        }
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: 'userId-createdAt-index',
+          KeySchema: [
+            {
+              AttributeName: 'userId',
+              KeyType: 'HASH'
+            },
+            {
+              AttributeName: 'createdAt',
+              KeyType: 'RANGE'
+            }
+          ],
+          Projection: {
+            ProjectionType: 'ALL'
+          }
+        }
+      ],
+      BillingMode: 'PAY_PER_REQUEST',
+      TimeToLiveSpecification: {
+        AttributeName: 'ttl',
+        Enabled: true
+      }
+    }
   }
 };

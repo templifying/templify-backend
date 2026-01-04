@@ -41,6 +41,10 @@ const serverlessConfiguration: AWS = {
 
       // SQS queues
       PDF_GENERATION_QUEUE_URL: { 'Fn::GetAtt': ['PdfGenerationQueue', 'QueueUrl'] },
+      AI_GENERATION_QUEUE_URL: { 'Fn::GetAtt': ['AIGenerationQueue', 'QueueUrl'] },
+
+      // AI Jobs table
+      AI_JOBS_TABLE: 'mkpdfs-${self:provider.stage}-ai-jobs',
 
       // S3 buckets
       ASSETS_BUCKET: 'mkpdfs-${self:provider.stage}-bucket',
@@ -132,7 +136,9 @@ const serverlessConfiguration: AWS = {
             ],
             Resource: [
               'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-sonnet-*',
-              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-haiku-*'
+              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-haiku-*',
+              'arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-sonnet-4-*',
+              'arn:aws:bedrock:${self:provider.region}:*:inference-profile/us.anthropic.claude-*'
             ]
           },
           {
@@ -145,7 +151,9 @@ const serverlessConfiguration: AWS = {
             ],
             Resource: [
               'arn:aws:sqs:${self:provider.region}:*:mkpdfs-${self:provider.stage}-pdf-generation',
-              'arn:aws:sqs:${self:provider.region}:*:mkpdfs-${self:provider.stage}-pdf-generation-dlq'
+              'arn:aws:sqs:${self:provider.region}:*:mkpdfs-${self:provider.stage}-pdf-generation-dlq',
+              'arn:aws:sqs:${self:provider.region}:*:mkpdfs-${self:provider.stage}-ai-generation',
+              'arn:aws:sqs:${self:provider.region}:*:mkpdfs-${self:provider.stage}-ai-generation-dlq'
             ]
           }
         ]
